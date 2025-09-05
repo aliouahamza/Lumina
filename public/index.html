@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة التلخيص الذكية</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .auth-section, .main-app {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            background: #e9ecef;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #28a745;
+        }
+
+        .usage-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 15px;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: none;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .language-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .lang-btn {
+            padding: 10px;
+            border: 2px solid #e1e8ed;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .lang-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .usage-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .result-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-brain"></i> منصة التلخيص الذكية</h1>
+            <p>لخص واترجم النصوص بسهولة وذكاء</p>
+        </div>
+
+        <!-- قسم المصادقة -->
+        <div id="authSection" class="auth-section">
+            <div class="tabs">
+                <button class="tab active" onclick="showLogin()">تسجيل الدخول</button>
+                <button class="tab" onclick="showRegister()">إنشاء حساب</button>
+            </div>
+
+            <!-- تسجيل الدخول -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">البريد الإلكتروني</label>
+                    <input type="email" id="loginEmail" placeholder="أدخل بريدك الإلكتروني">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">كلمة المرور</label>
+                    <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور">
+                </div>
+                <button class="btn" onclick="login()">
+                    <span id="loginLoading" class="loading hidden"></span>
+                    تسجيل الدخول
+                </button>
+            </div>
+
+            <!-- التسجيل -->
+            <div id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label for="registerUsername">اسم المستخدم</label>
+                    <input type="text" id="registerUsername" placeholder="أدخل اسم المستخدم">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">البريد الإلكتروني</label>
+                    <input type="email" id="registerEmail" placeholder="أدخل بريدك الإلكتروني">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">كلمة المرور</label>
+                    <input type="password" id="registerPassword" placeholder="أدخل كلمة المرور (6 أحرف على الأقل)">
+                </div>
+                <button class="btn" onclick="register()">
+                    <span id="registerLoading" class="loading hidden"></span>
+                    إنشاء حساب
+                </button>
+            </div>
+        </div>
+
+        <!-- التطبيق الرئيسي -->
+        <div id="mainApp" class="main-app hidden">
+            <!-- معلومات المستخدم -->
+            <div id="userInfo" class="user-info">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3>مرحباً، <span id="username"></span>!</h3>
+                        <p>نوع الاشتراك: <span id="subscriptionType"></span></p>
+                    </div>
+                    <button class="btn btn-danger" onclick="logout()" style="width: auto;">
+                        تسجيل الخروج
+                    </button>
+                </div>
+                
+                <div class="usage-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="summariesUsed">0</div>
+                        <div>التلخيصات المستخدمة</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="translationsUsed">0</div>
+                        <div>الترجمات المستخدمة</div>
+                    </div>
+                </div>
+
+                <div id="upgradeSection" class="hidden" style="margin-top: 15px;">
+                    <button class="btn btn-success" onclick="upgradeToPremium()">
+                        ترقية إلى النسخة المميزة - استخدام غير محدود!
+                    </button>
+                </div>
+            </div>
+
+            <!-- التلخيص -->
+            <div class="form-group">
+                <label for="textInput">النص المراد تلخيصه</label>
+                <textarea id="textInput" placeholder="ألصق النص الذي تريد تلخيصه هنا... (50 حرف على الأقل)"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="maxLength">الحد الأقصى لطول الملخص</label>
+                <select id="maxLength">
+                    <option value="100">قصير (100 كلمة)</option>
+                    <option value="200" selected>متوسط (200 كلمة)</option>
+                    <option value="300">طويل (300 كلمة)</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="summarizeText()">
+                <span id="summarizeLoading" class="loading hidden"></span>
+                <i class="fas fa-compress-alt"></i> تلخيص النص
+            </button>
+
+            <!-- نتيجة التلخيص -->
+            <div id="summaryResult" class="result-section hidden">
+                <div class="result-header">
+                    <h3><i class="fas fa-file-alt"></i> الملخص</h3>
+                    <button class="btn btn-secondary" onclick="copyToClipboard('summaryText')" style="width: auto;">
+                        <i class="fas fa-copy"></i> نسخ
+                    </button>
+                </div>
+                <div id="summaryText" class="result-content"></div>
+                <div id="summaryStats" class="result-stats"></div>
+
+                <!-- خيارات الترجمة -->
+                <div style="margin-top: 20px;">
+                    <h4>ترجمة الملخص</h4>
+                    <div class="language-selector">
+                        <div class="lang-btn" onclick="translateSummary('ar')">
+                            <i class="fas fa-language"></i><br>العربية
+                        </div>
+                        <div class="lang-btn" onclick="translateSummary('en')">
+                            <i class="fas fa-language"></i><br>English
+                        </div>
+                        <div class="lang-btn" onclick="translateSummary('fr')">
+                            <i class="fas fa-language"></i><br>Français
+                        </div>
+                    </div>
+                </div>
+
+                <!-- نتيجة الترجمة -->
+                <div id="translationResult" class="hidden" style="margin-top: 20px;">
+                    <div class="result-header">
+                        <h4><i class="fas fa-globe"></i> الترجمة</h4>
+                        <button class="btn btn-secondary" onclick="copyToClipboard('translationText')" style="width: auto;">
+                            <i class="fas fa-copy"></i> نسخ
+                        </button>
+                    </div>
+                    <div id="translationText" class="result-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- رسائل التنبيه -->
+        <div id="alertContainer"></div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let authToken = localStorage.getItem('authToken');
+        let currentSummary = '';
+
+        // تحديد الخادم
+        const API_BASE = window.location.origin + '/api';
+
+        // التحقق من وجود token عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (authToken) {
+                try {
+                    await loadUserProfile();
+                    showMainApp();
+                } catch (error) {
+                    localStorage.removeItem('authToken');
+                    showAuthSection();
+                }
+            }
+        });
+
+        // عرض رسالة تنبيه
+        function showAlert(message, type = 'error') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+            
+            // إخفاء التنبيه بعد 5 ثوان
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // تسجيل الدخول
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const loadingSpan = document.getElementById('loginLoading');
+
+            if (!email || !password) {
+                showAlert('يرجى ملء جميع الحقول');
+                return;
+            }
+
+            loadingSpan.classList.remove('hidden');
+
+            try {
+                const response = await axios.post(`${API_BASE}/auth/login`, {
+                    email,
+                    password
+                });
+
+                if (response.data.success) {
+                    authToken = response.data.data.token;
+                    localStorage.setItem('authToken', authToken);
+                    currentUser = response.data.data.user;
+                    
+                    showAlert('تم تسجيل الدخول بنجاح!', 'success');
+                    showMainApp();
+                } else {
+                    showAlert(response.data.error);
+                }
+            } catch (error) {
+                showAlert(error.response?.data?.error || 'حدث خطأ في الاتصال');
+            } finally {
+                loadingSpan.classList.add('hidden');
+            }
+        }
+
+        // التسجيل
+        async function register() {
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const loadingSpan = document.getElementById('registerLoading');
+
+            if (!username || !email || !password) {
+                showAlert('يرجى ملء جميع الحقول');
+                return;
+            }
+
+            loadingSpan.classList.remove('hidden');
+
+            try {
+                const response = await axios.post(`${API_BASE}/auth/register`, {
+                    username,
+                    email,
+                    password
+                });
+
+                if (response.data.success) {
+                    authToken = response.data.data.token;
+                    localStorage.setItem('authToken', authToken);
+                    currentUser = response.data.data.user;
+                    
+                    showAlert('تم إنشاء الحساب بنجاح!', 'success');
+                    showMainApp();
+                } else {
+                    showAlert(response.data.error);
+                }
+            } catch (error) {
+                showAlert(error.response?.data?.error || 'حدث خطأ في الاتصال');
+            } finally {
+                loadingSpan.classList.add('hidden');
+            }
+        }
+
+        // تحميل بيانات المستخدم
+        async function loadUserProfile() {
+            try {
+                const response = await axios.get(`${API_BASE}/auth/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.data.success) {
+                    currentUser = response.data.data.user;
+                    updateUserInfo();
+                }
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        // تحديث معلومات المستخدم في الواجهة
+        function updateUserInfo() {
+            document.getElementById('username').textContent = currentUser.username;
+            document.getElementById('subscriptionType').textContent = 
+                currentUser.subscriptionType === 'free' ? 'مجاني' : 'مميز';
+            
+            if (currentUser.monthlyUsage) {
+                document.getElementById('summariesUsed').textContent = 
+                    currentUser.subscriptionType === 'free' ? 
+                    `${currentUser.monthlyUsage.summariesCount}/10` : 
+                    currentUser.monthlyUsage.summariesCount;
+                
+                document.getElementById('translationsUsed').textContent = 
+                    currentUser.subscriptionType === 'free' ? 
+                    `${currentUser.monthlyUsage.translationsCount}/10` : 
+                    currentUser.monthlyUsage.translationsCount;
+            }
+
+            // إظهار قسم الترقية للمستخدمين المجانيين فقط
+            const upgradeSection = document.getElementById('upgradeSection');
+            if (currentUser.subscriptionType === 'free') {
+                upgradeSection.classList.remove('hidden');
+            } else {
+                upgradeSection.classList.add('hidden');
+            }
+        }
+
+        // تلخيص النص
+        async function summarizeText() {
+            const text = document.getElementById('textInput').value;
+            const maxLength = document.getElementById('maxLength').value;
+            const loadingSpan = document.getElementById('summarizeLoading');
+
+            if (!text.trim()) {
+                showAlert('يرجى إدخال النص المراد تلخيصه');
+                return;
+            }
+
+            if (text.length < 50) {
+                showAlert('النص قصير جداً للتلخيص (الحد الأدنى 50 حرف)');
+                return;
+            }
+
+            loadingSpan.classList.remove('hidden');
+
+            try {
+                const response = await axios.post(`${API_BASE}/summary`, {
+                    text,
+                    maxLength: parseInt(maxLength)
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.data.success) {
+                    const data = response.data.data;
+                    currentSummary = data.summary;
+                    
+                    document.getElementById('summaryText').textContent = data.summary;
+                    document.getElementById('summaryStats').innerHTML = `
+                        <div>الطول الأصلي: ${data.originalLength} حرف</div>
+                        <div>طول الملخص: ${data.summaryLength} حرف</div>
+                        <div>نسبة الضغط: ${data.compressionRatio}%</div>
+                    `;
+                    
+                    document.getElementById('summaryResult').classList.remove('hidden');
+                    
+                    // إخفاء نتيجة الترجمة السابقة
+                    document.getElementById('translationResult').classList.add('hidden');
+                    
+                    // تحديث إحصائيات المستخدم
+                    await loadUserProfile();
+                } else {
+                    showAlert(response.data.error);
+                    
+                    if (response.data.upgradeRequired) {
+                        showAlert('تحتاج إلى ترقية حسابك للمتابعة', 'warning');
+                    }
+                }
+            } catch (error) {
+                showAlert(error.response?.data?.error || 'حدث خطأ أثناء التلخيص');
+            } finally {
+                loadingSpan.classList.add('hidden');
+            }
+        }
+
+        // ترجمة الملخص
+        async function translateSummary(targetLanguage) {
+            if (!currentSummary) {
+                showAlert('لا يوجد ملخص للترجمة');
+                return;
+            }
+
+            try {
+                const response = await axios.post(`${API_BASE}/summary/translate`, {
+                    text: currentSummary,
+                    targetLanguage
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.data.success) {
+                    const data = response.data.data;
+                    
+                    document.getElementById('translationText').textContent = data.translatedText;
+                    document.getElementById('translationResult').classList.remove('hidden');
+                    
+                    // تحديث إحصائيات المستخدم
+                    await loadUserProfile();
+                    
+                    showAlert('تمت الترجمة بنجاح!', 'success');
+                } else {
+                    showAlert(response.data.error);
+                    
+                    if (response.data.upgradeRequired) {
+                        showAlert('تحتاج إلى ترقية حسابك للمتابعة', 'warning');
+                    }
+                }
+            } catch (error) {
+                showAlert(error.response?.data?.error || 'حدث خطأ أثناء الترجمة');
+            }
+        }
+
+        // ترقية إلى النسخة المميزة
+        async function upgradeToPremium() {
+            try {
+                const response = await axios.put(`${API_BASE}/auth/upgrade`, {}, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.data.success) {
+                    showAlert('تم ترقية حسابك بنجاح! 🎉', 'success');
+                    await loadUserProfile();
+                } else {
+                    showAlert(response.data.error);
+                }
+            } catch (error) {
+                showAlert(error.response?.data?.error || 'حدث خطأ أثناء ترقية الحساب');
+            }
+        }
+
+        // نسخ النص إلى الحافظة
+        async function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            try {
+                await navigator.clipboard.writeText(text);
+                showAlert('تم نسخ النص بنجاح!', 'success');
+            } catch (error) {
+                showAlert('فشل في نسخ النص');
+            }
+        }
+
+        // تسجيل الخروج
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            currentUser = null;
+            showAuthSection();
+            showAlert('تم تسجيل الخروج بنجاح', 'success');
+        }
+
+        // عرض قسم المصادقة
+        function showAuthSection() {
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            
+            // مسح الحقول
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('registerUsername').value = '';
+            document.getElementById('registerEmail').value = '';
+            document.getElementById('registerPassword').value = '';
+        }
+
+        // عرض التطبيق الرئيسي
+        function showMainApp() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            updateUserInfo();
+        }
+
+        // عرض نموذج تسجيل الدخول
+        function showLogin() {
+            document.querySelector('.tab.active').classList.remove('active');
+            document.querySelector('.tab').classList.add('active');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+
+        // عرض نموذج التسجيل
+        function showRegister() {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        // معالجة الضغط على Enter في الحقول
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (document.getElementById('loginForm').style.display !== 'none') {
+                    login();
+                } else if (document.getElementById('registerForm').style.display !== 'none') {
+                    register();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
